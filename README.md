@@ -72,12 +72,6 @@ E-commerce has transformed the way people shop and businesses operate. Customers
 
 ## Running the Frontend
 
-Navigate to the frontend folder:
-
-```bash
-cd summarizer-frontend
-```
-
 Install dependencies:
 
 ```bash
@@ -99,12 +93,6 @@ http://localhost:3000
 ---
 
 ## Running the Backend
-
-Navigate to backend folder:
-
-```bash
-cd summarizer-backend
-```
 
 Build project:
 
@@ -131,7 +119,7 @@ http://localhost:8080
 ### Build Docker Image
 
 ```bash
-docker build -t madhav3129/ai-summarizer:v1 .
+docker build -t madhav3129/summarizer:v1 .
 ```
 
 ### Verify Image
@@ -199,8 +187,6 @@ HuggingFaceService.java
 ```java
 private final String TOKEN = "YOUR_HUGGINGFACE_TOKEN";
 ```
-
-For security reasons, never commit API tokens to GitHub.
 
 ---
 
