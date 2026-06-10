@@ -59,17 +59,13 @@ POST /api/summarize
 **Request Body**
 
 ```text
-Artificial Intelligence is transforming industries...
+E-commerce has transformed the way people shop and businesses operate. Customers can browse products, compare prices, and make purchases from anywhere using the internet. Online platforms use recommendation systems, customer reviews, and personalized marketing to improve user experience. Businesses benefit from reduced operational costs and access to a global customer base. Secure payment gateways and digital wallets have made online transactions more convenient. However, e-commerce companies must address challenges such as cybersecurity threats, delivery logistics, and customer data privacy. As technology evolves, artificial intelligence and automation are expected to further enhance online shopping experiences.
 ```
 
 **Response**
 
 ```json
-[
-  {
-    "summary_text": "Artificial Intelligence is transforming industries..."
-  }
-]
+"E-commerce has transformed the way people shop and businesses operate. Online platforms use recommendation systems, customer reviews, and personalized marketing to improve user experience. Secure payment gateways and digital wallets have made online transactions more convenient. However, e-commerce companies must address challenges such as cybersecurity threats, delivery logistics, and customer data privacy."
 ```
 
 ---
