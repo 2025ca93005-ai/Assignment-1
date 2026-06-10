@@ -1,5 +1,8 @@
 HELP.md
 target/
+
+# Secret credentials — never commit
+src/main/resources/secrets.properties
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

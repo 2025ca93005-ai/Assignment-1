@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Text Summarizer</title>
+  <style>
+    :root {
+      --bg: #f0f4f8; --card: #ffffff; --text: #1a202c; --muted: #718096;
+      --border: #e2e8f0; --accent: #4f46e5; --accent-hover: #4338ca;
+      --accent-light: #eef2ff; --shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --success-bg: #f0fdf4; --success-border: #86efac; --success-text: #166534;
+      --error-bg: #fff5f5; --error-border: #fc8181; --error-text: #c53030;
+      --warn-bg: #fffbeb; --warn-border: #fcd34d; --warn-text: #92400e;
+      --history-bg: #f8fafc;
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --muted: #94a3b8;
+      --border: #334155; --accent: #818cf8; --accent-hover: #6366f1;
+      --accent-light: #1e1b4b; --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --success-bg: #052e16; --success-border: #166534; --success-text: #86efac;
+      --error-bg: #1a0000; --error-border: #7f1d1d; --error-text: #fca5a5;
+      --warn-bg: #1c1200; --warn-border: #78350f; --warn-text: #fcd34d;
+      --history-bg: #0f172a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
+    .top-bar { max-width: 780px; margin: 0 auto 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .top-bar h1 { font-size: 1.5rem; font-weight: 700; }
+    .badge { font-size: 0.7rem; background: var(--accent-light); color: var(--accent); padding: 2px 8px; border-radius: 999px; font-weight: 600; margin-left: 8px; }
+    .theme-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; color: var(--text); font-size: 0.9rem; }
+    .theme-btn:hover { border-color: var(--accent); }
+    .card { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 2rem; max-width: 780px; margin: 0 auto; }
+    label { display: block; font-weight: 600; font-size: 0.875rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 0.9rem 1rem; font-size: 0.95rem; resize: vertical; outline: none; font-family: inherit; color: var(--text); background: var(--bg); line-height: 1.6; min-height: 160px; }
+    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
+    textarea.warn { border-color: var(--warn-border); }
+    .meta-row { display: flex; justify-content: space-between; margin-top: 0.4rem; font-size: 0.8rem; color: var(--muted); }
+    .char-warn { color: var(--error-text); font-weight: 600; }
+    .btn-row { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+    .btn { flex: 1; padding: 0.75rem; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); flex: 0 0 auto; padding: 0.75rem 1.25rem; }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .dots span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: white; margin: 0 2px; animation: bounce 1.2s infinite; }
+    .dots span:nth-child(2) { animation-delay: 0.2s; } .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)} }
+    .result-section { margin-top: 1.5rem; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    .result-box { padding: 1.1rem 1.25rem; border-radius: 10px; font-size: 0.95rem; line-height: 1.7; border-left: 4px solid; }
+    .result-box.success { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
+    .result-box.error   { background: var(--error-bg);   border-color: var(--error-border);   color: var(--error-text); }
+    .result-box.warn    { background: var(--warn-bg);    border-color: var(--warn-border);    color: var(--warn-text); }
+    .result-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; font-size: 0.8rem; font-weight: 600; opacity: 0.8; }
+    .copy-btn { background: none; border: 1px solid currentColor; border-radius: 6px; padding: 2px 10px; font-size: 0.78rem; cursor: pointer; color: inherit; }
+    .stats-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.75rem; }
+    .stat { background: var(--accent-light); border-radius: 8px; padding: 4px 12px; font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 1.75rem 0; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+    .history-header span { font-weight: 700; font-size: 0.95rem; }
+    .clear-hist { background: none; border: none; color: var(--error-text); font-size: 0.8rem; cursor: pointer; }
+    .history-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: 380px; overflow-y: auto; }
+    .history-item { background: var(--history-bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; cursor: pointer; }
+    .history-item:hover { border-color: var(--accent); }
+    .hi-input { color: var(--muted); font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.2rem; }
+    .hi-summary { color: var(--text); line-height: 1.5; }
+    .hi-time { color: var(--muted); font-size: 0.72rem; margin-top: 0.3rem; }
+    .hint { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; }
+  </style>
+</head>
+<body>
+<div class="top-bar">
+  <h1>🤖 AI Summarizer <span class="badge">BART-large-CNN</span></h1>
+  <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
+</div>
+<div class="card">
+  <label for="inputText">Input Text</label>
+  <textarea id="inputText" rows="8" placeholder="Paste an article, paragraph, or any text here..." oninput="onInput()" onkeydown="handleKey(event)"></textarea>
+  <div class="meta-row">
+    <span id="charCount">0 characters · 0 words</span>
+    <span id="charWarn" class="char-warn" style="display:none"></span>
+  </div>
+  <p class="hint">Tip: Press <kbd>Ctrl+Enter</kbd> to summarize</p>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" id="summarizeBtn" onclick="summarize()">✨ Summarize</button>
+    <button class="btn btn-secondary" onclick="clearAll()" title="Clear">🗑</button>
+    <button class="btn btn-secondary" onclick="pasteText()" title="Paste">📋</button>
+  </div>
+
+  <div id="resultSection" class="result-section" style="display:none">
+    <div id="resultBox" class="result-box"></div>
+    <div id="statsRow" class="stats-row" style="display:none"></div>
+  </div>
+
+  <hr id="historyDivider" style="display:none" />
+  <div id="historySection" style="display:none">
+    <div class="history-header">
+      <span>📜 Recent Summaries</span>
+      <button class="clear-hist" onclick="clearHistory()">Clear all</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</div>
+
+<script>
+  const MAX_CHARS = 5000;
+
+  // Theme
+  function toggleTheme() {
+    const html = document.documentElement;
+    const dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = dark ? '🌙 Dark' : '☀️ Light';
+    localStorage.setItem('theme', dark ? 'light' : 'dark');
+  }
+  (function() {
+    const t = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('themeBtn').textContent = t === 'dark' ? '☀️ Light' : '🌙 Dark';
+  })();
+
+  // Input tracking
+  function onInput() {
+    const text = document.getElementById('inputText').value;
+    const chars = text.length, words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    document.getElementById('charCount').textContent = `${chars.toLocaleString()} chars · ${words.toLocaleString()} words`;
+    const warn = document.getElementById('charWarn');
+    const ta = document.getElementById('inputText');
+    if (chars > MAX_CHARS) {
+      warn.textContent = `⚠ ${(chars-MAX_CHARS).toLocaleString()} chars over limit`; warn.style.display='inline'; ta.classList.add('warn');
+    } else if (words > 0 && words < 15) {
+      warn.textContent = '⚠ Add more text for better results'; warn.style.display='inline'; ta.classList.remove('warn');
+    } else { warn.style.display='none'; ta.classList.remove('warn'); }
+  }
+  function handleKey(e) { if (e.ctrlKey && e.key==='Enter') summarize(); }
+  function clearAll() { document.getElementById('inputText').value=''; document.getElementById('resultSection').style.display='none'; onInput(); }
+  async function pasteText() {
+    try { document.getElementById('inputText').value = await navigator.clipboard.readText(); onInput(); }
+    catch { alert('Clipboard access denied — paste manually with Ctrl+V.'); }
+  }
+
+  // Summarize
+  async function summarize() {
+    const text = document.getElementById('inputText').value.trim();
+    if (!text) { showResult('error','Please enter some text first.'); return; }
+    if (text.length > MAX_CHARS) { showResult('error',`Text exceeds ${MAX_CHARS.toLocaleString()} character limit.`); return; }
+
+    const btn = document.getElementById('summarizeBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>Summarizing<div class="dots"><span></span><span></span><span></span></div>';
+    document.getElementById('statsRow').style.display = 'none';
+    document.getElementById('resultSection').style.display = 'none';
+    const t0 = Date.now();
+
+    try {
+      const res = await fetch('/api/summarize', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(text), signal: AbortSignal.timeout(150000)
+      });
+      const summary = await res.text();
+      const elapsed = ((Date.now()-t0)/1000).toFixed(1);
+      if (!res.ok || summary.startsWith('ERROR:') || summary.startsWith('Model is warming')) {
+        showResult(res.status===400 ? 'error' : 'warn', summary);
+      } else {
+        showResult('success', summary);
+        showStats(text, summary, elapsed);
+        saveHistory(text, summary);
+      }
+    } catch(e) {
+      showResult('error', e.name==='TimeoutError' ? 'Request timed out — model may be busy, please retry.' : 'Network error: '+e.message);
+    } finally {
+      btn.disabled=false; btn.innerHTML='✨ Summarize';
+    }
+  }
+
+  function showResult(type, text) {
+    const box = document.getElementById('resultBox');
+    const icons = {success:'✅ Summary', error:'❌ Error', warn:'⚠️ Notice'};
+    box.className = 'result-box '+type;
+    box.innerHTML = `<div class="result-meta"><span>${icons[type]}</span>${type==='success'?'<button class="copy-btn" onclick="copyResult()">Copy</button>':''}</div>${text}`;
+    document.getElementById('resultSection').style.display = 'block';
+  }
+
+  function showStats(input, output, elapsed) {
+    const iw = input.trim().split(/\s+/).length, ow = output.trim().split(/\s+/).length;
+    const red = Math.round((1-ow/iw)*100);
+    const row = document.getElementById('statsRow');
+    row.innerHTML = `<div class="stat">📥 ${iw} words in</div><div class="stat">📤 ${ow} words out</div><div class="stat">📉 ${red}% shorter</div><div class="stat">⏱ ${elapsed}s</div>`;
+    row.style.display = 'flex';
+  }
+
+  function copyResult() {
+    const text = document.getElementById('resultBox').innerText.replace(/^(✅ Summary|Copy)\s*/m,'').trim();
+    navigator.clipboard.writeText(text).then(()=>{ const b=document.querySelector('.copy-btn'); b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy',2000); });
+  }
+
+  // History
+  function saveHistory(input, summary) {
+    const h = JSON.parse(localStorage.getItem('sumHistory')||'[]');
+    h.unshift({input, summary, time: new Date().toLocaleTimeString()});
+    if (h.length>10) h.pop();
+    localStorage.setItem('sumHistory', JSON.stringify(h));
+    renderHistory();
+  }
+  function renderHistory() {
+    const h = JSON.parse(localStorage.getItem('sumHistory')||'[]');
+    const section=document.getElementById('historySection'), div=document.getElementById('historyDivider'), list=document.getElementById('historyList');
+    if (!h.length) { section.style.display='none'; div.style.display='none'; return; }
+    section.style.display='block'; div.style.display='block';
+    list.innerHTML = h.map((x,i)=>`<div class="history-item" onclick="loadHistory(${i})"><div class="hi-input">📥 ${x.input.substring(0,100)}${x.input.length>100?'…':''}</div><div class="hi-summary">${x.summary.substring(0,140)}${x.summary.length>140?'…':''}</div><div class="hi-time">🕐 ${x.time}</div></div>`).join('');
+  }
+  function loadHistory(i) {
+    const h = JSON.parse(localStorage.getItem('sumHistory')||'[]');
+    document.getElementById('inputText').value = h[i].input;
+    showResult('success', h[i].summary); onInput();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function clearHistory() { localStorage.removeItem('sumHistory'); renderHistory(); }
+
+  renderHistory(); onInput();
+</script>
+</body>
+</html>
