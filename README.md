@@ -176,17 +176,9 @@ docker pull madhav3129/ai-summarizer:v1
 
 ---
 
-## Environment Variables
+## HUGGING TOKEN USE FOR SUMMARIZE
 
-Replace your Hugging Face API token inside:
-
-```java
-HuggingFaceService.java
-```
-
-```java
-private final String TOKEN = "YOUR_HUGGINGFACE_TOKEN";
-```
+Replace your Hugging Face API token inside
 
 ---
 
