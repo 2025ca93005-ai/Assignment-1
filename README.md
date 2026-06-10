@@ -208,19 +208,3 @@ For security reasons, never commit API tokens to GitHub.
 
 ---
 
-## Future Enhancements
-
-* User authentication
-* Summary length options
-* Multiple AI models
-* Summary history
-* Cloud deployment
-* Improved UI/UX
-
----
-
-## Author
-
-**Madhav Singh**
-
-GitHub: https://github.com/madhav3129
