@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  summarizer:
+    build: .
+    image: summarizer-backend:latest
+    container_name: summarizer-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Set your Hugging Face token here or export HUGGINGFACE_TOKEN before running
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
+    restart: unless-stopped
